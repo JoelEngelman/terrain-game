@@ -8,246 +8,148 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 
-import world.village.VillageMaterials;
-
 public class HouseRoof {
 
-    private final Node roofNode;
+    private final Node roofNode = new Node("House Roof");
 
     public HouseRoof(
         AssetManager assetManager,
         float width,
         float depth,
-        float wallHeight
+        float wallHeight,
+        HouseStyle style
     ) {
-
-        roofNode = new Node("House Roof");
-
-        Material roofMaterial =
-            createMaterial(
-                assetManager,
-                VillageMaterials.ROOF_BROWN
-            );
-
-        Material ridgeMaterial =
-            createMaterial(
-                assetManager,
-                VillageMaterials.DARK_OAK
-            );
-
-        /*
-         * ============================
-         * ROOF EAVE / BASE
-         * ============================
-         */
-
-        float eaveWidth = width + 1.2f;
-        float eaveDepth = depth + 1.2f;
-        float eaveHeight = 0.35f;
-
-        Geometry eave =
-            new Geometry(
-                "Roof Eave",
-                new Box(
-                    eaveWidth / 2f,
-                    eaveHeight / 2f,
-                    eaveDepth / 2f
-                )
-            );
-
-        eave.setMaterial(roofMaterial);
-
-        eave.setLocalTranslation(
-            0f,
-            wallHeight + eaveHeight / 2f,
-            0f
-        );
-
-        roofNode.attachChild(eave);
-
-        /*
-         * ============================
-         * ROOF DIMENSIONS
-         * ============================
-         */
-
-        float roofWidth = width + 0.8f;
-        float roofDepth = depth + 0.8f;
-        float roofHeight = 2.5f;
-
-        float bottomY =
-            wallHeight + eaveHeight;
-
-        float halfWidth =
-            roofWidth / 2f;
-
-        float halfDepth =
-            roofDepth / 2f;
-
-        /*
-         * ============================
-         * LEFT SLOPE
-         * ============================
-         */
-
-        createRoofPiece(
-            roofMaterial,
-            "Left Roof",
-            new Vector3f(
-                -halfWidth,
-                bottomY,
-                -halfDepth
-            ),
-            new Vector3f(
-                0f,
-                bottomY + roofHeight,
-                -halfDepth
-            ),
-            new Vector3f(
-                0f,
-                bottomY + roofHeight,
-                halfDepth
-            ),
-            new Vector3f(
-                -halfWidth,
-                bottomY,
-                halfDepth
-            )
-        );
-
-        /*
-         * ============================
-         * RIGHT SLOPE
-         * ============================
-         */
-
-        createRoofPiece(
-            roofMaterial,
-            "Right Roof",
-            new Vector3f(
-                0f,
-                bottomY + roofHeight,
-                -halfDepth
-            ),
-            new Vector3f(
-                halfWidth,
-                bottomY,
-                -halfDepth
-            ),
-            new Vector3f(
-                halfWidth,
-                bottomY,
-                halfDepth
-            ),
-            new Vector3f(
-                0f,
-                bottomY + roofHeight,
-                halfDepth
-            )
-        );
-
-        /*
-         * ============================
-         * RIDGE
-         * ============================
-         */
-
-        Geometry ridge =
-            new Geometry(
-                "Roof Ridge",
-                new Box(
-                    0.18f,
-                    0.18f,
-                    halfDepth
-                )
-            );
-
-        ridge.setMaterial(ridgeMaterial);
-
-        ridge.setLocalTranslation(
-            0f,
-            bottomY + roofHeight,
-            0f
-        );
-
-        roofNode.attachChild(ridge);
+        switch(style) {
+            case MODERN:
+                modern(assetManager,width,depth,wallHeight);
+                break;
+            case SHOP:
+                canopy(assetManager,width,depth,wallHeight);
+                break;
+            case BLACKSMITH:
+                industrial(assetManager,width,depth,wallHeight);
+                break;
+            default:
+                lowGable(assetManager,width,depth,wallHeight,style);
+        }
     }
 
-    private void createRoofPiece(
-        Material material,
-        String name,
-        Vector3f a,
-        Vector3f b,
-        Vector3f c,
-        Vector3f d
+    private void modern(
+        AssetManager a,float w,float d,float h
     ) {
+        Material dark=material(a,new ColorRGBA(0.06f,0.08f,0.09f,1f),35f);
+        Material light=material(a,new ColorRGBA(0.72f,0.74f,0.72f,1f),18f);
 
-        Vector3f[] vertices = {
-            a,
-            b,
-            c,
-            d
-        };
+        box(dark,new Vector3f(0,h+0.16f,0),
+            w+1.1f,0.32f,d+1.1f);
 
-        int[] indices = {
-            0, 1, 2,
-            0, 2, 3
-        };
+        box(light,new Vector3f(w*0.14f,h+0.48f,0.08f),
+            w*0.56f,0.42f,d*0.72f);
 
-        com.jme3.scene.Mesh mesh =
-            new com.jme3.scene.Mesh();
+        box(dark,new Vector3f(-w*0.18f,h+0.75f,-d*0.08f),
+            w*0.50f,0.18f,d*0.85f);
+    }
 
+    private void lowGable(
+        AssetManager a,float w,float d,float h,HouseStyle style
+    ) {
+        Material roof=material(a,
+            style==HouseStyle.FARMHOUSE
+                ? new ColorRGBA(0.18f,0.22f,0.20f,1f)
+                : new ColorRGBA(0.24f,0.15f,0.10f,1f),
+            14f);
+
+        box(roof,new Vector3f(0,h+0.16f,0),
+            w+1.0f,0.32f,d+1.0f);
+
+        float over=w/2f+0.45f;
+        float halfD=d/2f+0.45f;
+        float top=h+2.35f;
+
+        createSlope(roof,"Roof Left",
+            new Vector3f(-over,h+0.32f,-halfD),
+            new Vector3f(0,top,-halfD),
+            new Vector3f(0,top,halfD),
+            new Vector3f(-over,h+0.32f,halfD));
+
+        createSlope(roof,"Roof Right",
+            new Vector3f(0,top,-halfD),
+            new Vector3f(over,h+0.32f,-halfD),
+            new Vector3f(over,h+0.32f,halfD),
+            new Vector3f(0,top,halfD));
+    }
+
+    private void canopy(
+        AssetManager a,float w,float d,float h
+    ) {
+        Material roof=material(a,new ColorRGBA(0.08f,0.11f,0.13f,1f),28f);
+        box(roof,new Vector3f(0,h+0.16f,0),
+            w+1.0f,0.30f,d+1.0f);
+        box(roof,new Vector3f(0,h+0.70f,-d*0.58f),
+            w+1.5f,0.18f,1.3f);
+        box(roof,new Vector3f(0,h+0.95f,-d*0.35f),
+            w*0.72f,0.12f,0.9f);
+    }
+
+    private void industrial(
+        AssetManager a,float w,float d,float h
+    ) {
+        Material roof=material(a,new ColorRGBA(0.10f,0.11f,0.11f,1f),24f);
+        box(roof,new Vector3f(0,h+0.18f,0),
+            w+1.2f,0.36f,d+1.2f);
+        box(roof,new Vector3f(0,h+0.65f,0),
+            w*0.92f,0.25f,d*0.88f);
+        box(roof,new Vector3f(w*0.28f,h+1.8f,d*0.15f),
+            0.75f,2.8f,0.75f);
+    }
+
+    private void createSlope(
+        Material m,String name,
+        Vector3f a,Vector3f b,Vector3f c,Vector3f d
+    ) {
+        com.jme3.scene.Mesh mesh=new com.jme3.scene.Mesh();
         mesh.setBuffer(
-            com.jme3.scene.VertexBuffer.Type.Position,
-            3,
+            com.jme3.scene.VertexBuffer.Type.Position,3,
             com.jme3.util.BufferUtils.createFloatBuffer(
-                vertices
+                new Vector3f[]{a,b,c,d}
             )
         );
-
         mesh.setBuffer(
-            com.jme3.scene.VertexBuffer.Type.Index,
-            3,
+            com.jme3.scene.VertexBuffer.Type.Index,3,
             com.jme3.util.BufferUtils.createIntBuffer(
-                indices
+                new int[]{0,1,2,0,2,3}
             )
         );
-
         mesh.updateBound();
-
-        Geometry geometry =
-            new Geometry(
-                name,
-                mesh
-            );
-
-        geometry.setMaterial(material);
-
-        roofNode.attachChild(
-            geometry
-        );
+        Geometry g=new Geometry(name,mesh);
+        g.setMaterial(m);
+        roofNode.attachChild(g);
     }
 
-    private Material createMaterial(
-        AssetManager assetManager,
-        ColorRGBA color
+    private void box(
+        Material m,Vector3f p,float w,float h,float d
     ) {
-
-        Material material =
-            new Material(
-                assetManager,
-                "Common/MatDefs/Misc/Unshaded.j3md"
-            );
-
-        material.setColor(
-            "Color",
-            color
+        Geometry g=new Geometry(
+            "Roof Detail",new Box(w/2f,h/2f,d/2f)
         );
-
-        return material;
+        g.setMaterial(m);
+        g.setLocalTranslation(p);
+        roofNode.attachChild(g);
     }
 
-    public Node getNode() {
-        return roofNode;
+    private Material material(
+        AssetManager a,ColorRGBA c,float shininess
+    ) {
+        Material m=new Material(
+            a,"Common/MatDefs/Light/Lighting.j3md"
+        );
+        m.setBoolean("UseMaterialColors",true);
+        m.setColor("Ambient",c.mult(0.55f));
+        m.setColor("Diffuse",c);
+        m.setColor("Specular",ColorRGBA.White);
+        m.setFloat("Shininess",shininess);
+        return m;
     }
+
+    public Node getNode(){return roofNode;}
 }
