@@ -1,5 +1,6 @@
 package world.village.buildings;
 
+import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -7,399 +8,132 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
-
-import world.village.VillageMaterials;
+import world.village.DoorSystem;
 
 public class House {
 
-    private final Node house;
+    private final Node house = new Node("Modern House");
 
     public House(
-        AssetManager assetManager,
+        SimpleApplication game,
         Vector3f position,
         float width,
         float depth,
         float height,
-        HouseStyle style
+        HouseStyle style,
+        DoorSystem doorSystem
     ) {
+        AssetManager assets=game.getAssetManager();
 
-        house = new Node("House");
-
-        Material wallMaterial =
-            createMaterial(
-                assetManager,
-                getWallColor(style)
-            );
-
-        Material beamMaterial =
-            createMaterial(
-                assetManager,
-                getBeamColor(style)
-            );
-
-        /*
-         * ============================
-         * WALLS
-         * ============================
-         */
-
-        float wallThickness = 0.25f;
-
-        // Back
-        createBox(
-            "Back Wall",
-            wallMaterial,
-            new Vector3f(
-                0f,
-                height / 2f,
-                depth / 2f
-            ),
-            width,
-            height,
-            wallThickness
+        Material wall=material(
+            assets, wallColor(style), 10f
+        );
+        Material dark=material(
+            assets, new ColorRGBA(0.07f,0.09f,0.10f,1f), 35f
         );
 
-        // Left
-        createBox(
-            "Left Wall",
-            wallMaterial,
-            new Vector3f(
-                -width / 2f,
-                height / 2f,
-                0f
-            ),
-            wallThickness,
-            height,
-            depth
+        // Clean modern shell with a genuine front opening.
+        float t=0.28f;
+        float doorW=1.8f;
+        float side=(width-doorW)/2f;
+
+        box(wall,new Vector3f(0,height/2f,depth/2f),
+            width,height,t);
+        box(wall,new Vector3f(-width/2f,height/2f,0),
+            t,height,depth);
+        box(wall,new Vector3f(width/2f,height/2f,0),
+            t,height,depth);
+
+        box(wall,new Vector3f(
+            -(doorW/2f+side/2f),height/2f,-depth/2f
+        ),side,height,t);
+        box(wall,new Vector3f(
+            doorW/2f+side/2f,height/2f,-depth/2f
+        ),side,height,t);
+        box(wall,new Vector3f(
+            0f,doorH(height),-depth/2f
+        ),doorW,height-doorH(height),t);
+
+        // Modern corner fins.
+        box(dark,new Vector3f(-width/2f+0.18f,height/2f,-depth/2f-0.03f),
+            0.22f,height+0.05f,0.22f);
+        box(dark,new Vector3f(width/2f-0.18f,height/2f,-depth/2f-0.03f),
+            0.22f,height+0.05f,0.22f);
+
+        HouseRoof roof=new HouseRoof(
+            assets,width,depth,height,style
         );
+        house.attachChild(roof.getNode());
 
-        // Right
-        createBox(
-            "Right Wall",
-            wallMaterial,
-            new Vector3f(
-                width / 2f,
-                height / 2f,
-                0f
-            ),
-            wallThickness,
-            height,
-            depth
+        HouseWindows windows=new HouseWindows(
+            assets,width,depth,height
         );
+        house.attachChild(windows.getNode());
 
-        /*
-         * ============================
-         * FRONT WALL + DOOR OPENING
-         * ============================
-         */
-
-        float doorWidth = 1.8f;
-        float doorHeight = 3.0f;
-
-        float sideWidth =
-            (width - doorWidth) / 2f;
-
-        createBox(
-            "Front Wall Left",
-            wallMaterial,
-            new Vector3f(
-                -(doorWidth / 2f + sideWidth / 2f),
-                height / 2f,
-                -depth / 2f
-            ),
-            sideWidth,
-            height,
-            wallThickness
+        HouseDoors doors=new HouseDoors(
+            game,assets,width,depth,height,doorSystem
         );
+        doors.getNode().setLocalTranslation(0,0,0);
+        house.attachChild(doors.getNode());
 
-        createBox(
-            "Front Wall Right",
-            wallMaterial,
-            new Vector3f(
-                doorWidth / 2f + sideWidth / 2f,
-                height / 2f,
-                -depth / 2f
-            ),
-            sideWidth,
-            height,
-            wallThickness
+        HouseInterior interior=new HouseInterior(
+            assets,width,depth,height,style
         );
+        house.attachChild(interior.getNode());
 
-        if (height > doorHeight) {
+        // Porch: every house has one, but proportions vary.
+        float porchW=width*0.78f;
+        box(dark,new Vector3f(0,0.16f,-depth/2f-0.85f),
+            porchW,0.32f,1.7f);
+        box(dark,new Vector3f(-porchW/2f+0.12f,height*0.34f,-depth/2f-1.55f),
+            0.20f,height*0.68f,0.20f);
+        box(dark,new Vector3f(porchW/2f-0.12f,height*0.34f,-depth/2f-1.55f),
+            0.20f,height*0.68f,0.20f);
+        box(dark,new Vector3f(0,height*0.68f,-depth/2f-1.55f),
+            porchW,0.18f,0.20f);
 
-            createBox(
-                "Front Wall Above Door",
-                wallMaterial,
-                new Vector3f(
-                    0f,
-                    doorHeight +
-                    (height - doorHeight) / 2f,
-                    -depth / 2f
-                ),
-                doorWidth,
-                height - doorHeight,
-                wallThickness
-            );
-        }
-
-        /*
-         * ============================
-         * CORNER POSTS
-         * ============================
-         */
-
-        float postSize = 0.25f;
-
-        createBeam(
-            beamMaterial,
-            new Vector3f(
-                -width / 2f + postSize / 2f,
-                height / 2f,
-                -depth / 2f
-            ),
-            postSize,
-            height,
-            postSize
-        );
-
-        createBeam(
-            beamMaterial,
-            new Vector3f(
-                width / 2f - postSize / 2f,
-                height / 2f,
-                -depth / 2f
-            ),
-            postSize,
-            height,
-            postSize
-        );
-
-        createBeam(
-            beamMaterial,
-            new Vector3f(
-                -width / 2f + postSize / 2f,
-                height / 2f,
-                depth / 2f
-            ),
-            postSize,
-            height,
-            postSize
-        );
-
-        createBeam(
-            beamMaterial,
-            new Vector3f(
-                width / 2f - postSize / 2f,
-                height / 2f,
-                depth / 2f
-            ),
-            postSize,
-            height,
-            postSize
-        );
-
-        /*
-         * ============================
-         * ROOF
-         * ============================
-         */
-
-        HouseRoof roof =
-            new HouseRoof(
-                assetManager,
-                width,
-                depth,
-                height
-            );
-
-        house.attachChild(
-            roof.getNode()
-        );
-
-        /*
-         * ============================
-         * DOOR
-         * ============================
-         */
-
-        HouseDoors doors =
-            new HouseDoors(
-                assetManager,
-                width,
-                depth,
-                height
-            );
-
-        house.attachChild(
-            doors.getNode()
-        );
-
-        /*
-         * ============================
-         * WINDOWS
-         * ============================
-         */
-
-        HouseWindows windows =
-            new HouseWindows(
-                assetManager,
-                width,
-                depth,
-                height
-            );
-
-        house.attachChild(
-            windows.getNode()
-        );
-
-        /*
-         * ============================
-         * STYLE-SPECIFIC EXTERIOR
-         * ============================
-         */
-
-        HouseExterior exterior =
-            new HouseExterior(
-                assetManager,
-                width,
-                depth,
-                height,
-                style
-            );
-
-        house.attachChild(
-            exterior.getNode()
-        );
-
-        /*
-         * ============================
-         * FINAL POSITION
-         * ============================
-         */
-
-        house.setLocalTranslation(
-            position
-        );
+        house.setLocalTranslation(position);
     }
 
-    private void createBox(
-        String name,
-        Material material,
-        Vector3f position,
-        float width,
-        float height,
-        float depth
-    ) {
+    private float doorH(float h){ return Math.min(3.0f,h-0.5f); }
 
-        Geometry geometry =
-            new Geometry(
-                name,
-                new Box(
-                    width / 2f,
-                    height / 2f,
-                    depth / 2f
-                )
-            );
-
-        geometry.setMaterial(
-            material
-        );
-
-        geometry.setLocalTranslation(
-            position
-        );
-
-        house.attachChild(
-            geometry
-        );
-    }
-
-    private void createBeam(
-        Material material,
-        Vector3f position,
-        float width,
-        float height,
-        float depth
-    ) {
-
-        createBox(
-            "Structural Beam",
-            material,
-            position,
-            width,
-            height,
-            depth
-        );
-    }
-
-    private ColorRGBA getWallColor(
-        HouseStyle style
-    ) {
-
-        switch (style) {
-
-            case MODERN:
-                return VillageMaterials.LIGHT_OAK;
-
-            case BLACKSMITH:
-                return VillageMaterials.DARK_OAK;
-
+    private ColorRGBA wallColor(HouseStyle style){
+        switch(style){
             case FARMHOUSE:
-                return VillageMaterials.BIRCH;
-
-            case SHOP:
-                return VillageMaterials.RED_WOOD;
-
-            case COTTAGE:
-            default:
-                return VillageMaterials.WARM_OAK;
-        }
-    }
-
-    private ColorRGBA getBeamColor(
-        HouseStyle style
-    ) {
-
-        switch (style) {
-
-            case MODERN:
-                return VillageMaterials.OAK;
-
+                return new ColorRGBA(0.68f,0.66f,0.58f,1f);
             case BLACKSMITH:
-                return VillageMaterials.DARK_STONE;
-
-            case FARMHOUSE:
-                return VillageMaterials.OAK;
-
+                return new ColorRGBA(0.27f,0.30f,0.31f,1f);
             case SHOP:
-                return VillageMaterials.DARK_OAK;
-
-            case COTTAGE:
+                return new ColorRGBA(0.50f,0.56f,0.57f,1f);
+            case MODERN:
+                return new ColorRGBA(0.80f,0.80f,0.76f,1f);
             default:
-                return VillageMaterials.DARK_OAK;
+                return new ColorRGBA(0.64f,0.61f,0.55f,1f);
         }
     }
 
-    private Material createMaterial(
-        AssetManager assetManager,
-        ColorRGBA color
-    ) {
-
-        Material material =
-            new Material(
-                assetManager,
-                "Common/MatDefs/Misc/Unshaded.j3md"
-            );
-
-        material.setColor(
-            "Color",
-            color
+    private void box(Material m,Vector3f p,float w,float h,float d){
+        Geometry g=new Geometry(
+            "House Architecture",new Box(w/2f,h/2f,d/2f)
         );
-
-        return material;
+        g.setMaterial(m);
+        g.setLocalTranslation(p);
+        house.attachChild(g);
     }
 
-    public Node getNode() {
-        return house;
+    private Material material(
+        AssetManager a,ColorRGBA c,float shininess
+    ){
+        Material m=new Material(
+            a,"Common/MatDefs/Light/Lighting.j3md"
+        );
+        m.setBoolean("UseMaterialColors",true);
+        m.setColor("Ambient",c.mult(0.55f));
+        m.setColor("Diffuse",c);
+        m.setColor("Specular",ColorRGBA.White);
+        m.setFloat("Shininess",shininess);
+        return m;
     }
+
+    public Node getNode(){return house;}
 }
