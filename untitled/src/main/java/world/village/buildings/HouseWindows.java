@@ -8,11 +8,9 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 
-import world.village.VillageMaterials;
-
 public class HouseWindows {
 
-    private final Node windowsNode;
+    private final Node windowsNode = new Node("House Windows");
 
     public HouseWindows(
         AssetManager assetManager,
@@ -20,349 +18,85 @@ public class HouseWindows {
         float depth,
         float height
     ) {
-
-        windowsNode = new Node("House Windows");
-
-        Material glassMaterial =
-            createMaterial(
-                assetManager,
-                new ColorRGBA(
-                    0.18f,
-                    0.45f,
-                    0.55f,
-                    1f
-                )
-            );
-
-        Material frameMaterial =
-            createMaterial(
-                assetManager,
-                VillageMaterials.DARK_OAK
-            );
-
-        // =========================
-        // FRONT LEFT WINDOW
-        // =========================
-
-        createFrontWindow(
-            glassMaterial,
-            frameMaterial,
-            new Vector3f(
-                -width * 0.27f,
-                height * 0.58f,
-                -depth / 2f - 0.06f
-            ),
-            1.5f,
-            1.4f
+        Material glass = material(
+            assetManager,
+            new ColorRGBA(0.20f,0.52f,0.68f,1f), 96f
+        );
+        Material frame = material(
+            assetManager,
+            new ColorRGBA(0.07f,0.09f,0.10f,1f), 45f
         );
 
-        // =========================
-        // FRONT RIGHT WINDOW
-        // =========================
+        // Clean modern front glazing.
+        createFront(glass, frame,
+            new Vector3f(-width*0.24f,height*0.57f,-depth/2f-0.08f),
+            2.1f,1.8f);
+        createFront(glass, frame,
+            new Vector3f(width*0.25f,height*0.57f,-depth/2f-0.08f),
+            2.1f,1.8f);
 
-        createFrontWindow(
-            glassMaterial,
-            frameMaterial,
-            new Vector3f(
-                width * 0.27f,
-                height * 0.58f,
-                -depth / 2f - 0.06f
-            ),
-            1.5f,
-            1.4f
-        );
-
-        // =========================
-        // LEFT SIDE WINDOW
-        // =========================
-
-        createSideWindow(
-            glassMaterial,
-            frameMaterial,
-            new Vector3f(
-                -width / 2f - 0.06f,
-                height * 0.58f,
-                0f
-            ),
-            1.5f,
-            1.4f
-        );
-
-        // =========================
-        // RIGHT SIDE WINDOW
-        // =========================
-
-        createSideWindow(
-            glassMaterial,
-            frameMaterial,
-            new Vector3f(
-                width / 2f + 0.06f,
-                height * 0.58f,
-                0f
-            ),
-            1.5f,
-            1.4f
-        );
+        // Large side windows.
+        createSide(glass, frame,
+            new Vector3f(-width/2f-0.08f,height*0.58f,0.2f),
+            2.4f,1.7f);
+        createSide(glass, frame,
+            new Vector3f(width/2f+0.08f,height*0.58f,-0.4f),
+            2.4f,1.7f);
     }
 
-    // =========================
-    // FRONT WINDOW
-    // =========================
-
-    private void createFrontWindow(
-        Material glassMaterial,
-        Material frameMaterial,
-        Vector3f position,
-        float width,
-        float height
+    private void createFront(
+        Material glass, Material frame,
+        Vector3f p, float w, float h
     ) {
-
-        // Glass
-        createPart(
-            glassMaterial,
-            position,
-            width,
-            height,
-            0.08f
-        );
-
-        float frameSize = 0.10f;
-
-        // Top
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x,
-                position.y + height / 2f,
-                position.z - 0.02f
-            ),
-            width + frameSize * 2f,
-            frameSize,
-            0.14f
-        );
-
-        // Bottom
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x,
-                position.y - height / 2f,
-                position.z - 0.02f
-            ),
-            width + frameSize * 2f,
-            frameSize,
-            0.14f
-        );
-
-        // Left
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x - width / 2f,
-                position.y,
-                position.z - 0.02f
-            ),
-            frameSize,
-            height,
-            0.14f
-        );
-
-        // Right
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x + width / 2f,
-                position.y,
-                position.z - 0.02f
-            ),
-            frameSize,
-            height,
-            0.14f
-        );
-
-        // Vertical middle
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x,
-                position.y,
-                position.z - 0.03f
-            ),
-            frameSize,
-            height,
-            0.16f
-        );
-
-        // Horizontal middle
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x,
-                position.y,
-                position.z - 0.03f
-            ),
-            width,
-            frameSize,
-            0.16f
-        );
+        create(glass,p,w,h,0.08f);
+        float f=0.09f;
+        create(frame,new Vector3f(p.x,p.y+h/2f,p.z-0.05f),w+f*2f,f,0.15f);
+        create(frame,new Vector3f(p.x,p.y-h/2f,p.z-0.05f),w+f*2f,f,0.15f);
+        create(frame,new Vector3f(p.x-w/2f,p.y,p.z-0.05f),f,h,0.15f);
+        create(frame,new Vector3f(p.x+w/2f,p.y,p.z-0.05f),f,h,0.15f);
+        create(frame,new Vector3f(p.x,p.y,p.z-0.06f),f,h,0.17f);
     }
 
-    // =========================
-    // SIDE WINDOW
-    // =========================
-
-    private void createSideWindow(
-        Material glassMaterial,
-        Material frameMaterial,
-        Vector3f position,
-        float width,
-        float height
+    private void createSide(
+        Material glass, Material frame,
+        Vector3f p, float w, float h
     ) {
-
-        // Glass
-        createPart(
-            glassMaterial,
-            position,
-            0.08f,
-            height,
-            width
-        );
-
-        float frameSize = 0.10f;
-
-        // Top
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x,
-                position.y + height / 2f,
-                position.z
-            ),
-            0.14f,
-            frameSize,
-            width + frameSize * 2f
-        );
-
-        // Bottom
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x,
-                position.y - height / 2f,
-                position.z
-            ),
-            0.14f,
-            frameSize,
-            width + frameSize * 2f
-        );
-
-        // Front
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x,
-                position.y,
-                position.z - width / 2f
-            ),
-            0.14f,
-            height,
-            frameSize
-        );
-
-        // Back
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x,
-                position.y,
-                position.z + width / 2f
-            ),
-            0.14f,
-            height,
-            frameSize
-        );
-
-        // Vertical middle
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x,
-                position.y,
-                position.z
-            ),
-            0.16f,
-            height,
-            frameSize
-        );
-
-        // Horizontal middle
-        createPart(
-            frameMaterial,
-            new Vector3f(
-                position.x,
-                position.y,
-                position.z
-            ),
-            0.16f,
-            frameSize,
-            width
-        );
+        create(glass,p,0.08f,h,w);
+        float f=0.09f;
+        create(frame,new Vector3f(p.x,p.y+h/2f,p.z),0.15f,f,w+f*2f);
+        create(frame,new Vector3f(p.x,p.y-h/2f,p.z),0.15f,f,w+f*2f);
+        create(frame,new Vector3f(p.x,p.y,p.z-w/2f),0.15f,h,f);
+        create(frame,new Vector3f(p.x,p.y,p.z+w/2f),0.15f,h,f);
     }
 
-    // =========================
-    // WINDOW PART
-    // =========================
-
-    private void createPart(
-        Material material,
-        Vector3f position,
-        float x,
-        float y,
-        float z
+    private void create(
+        Material material, Vector3f p,
+        float x, float y, float z
     ) {
-
-        Geometry geometry =
-            new Geometry(
-                "Window Part",
-                new Box(
-                    x / 2f,
-                    y / 2f,
-                    z / 2f
-                )
-            );
-
-        geometry.setMaterial(material);
-
-        geometry.setLocalTranslation(
-            position
+        Geometry g = new Geometry(
+            "Modern Window",
+            new Box(x/2f,y/2f,z/2f)
         );
-
-        windowsNode.attachChild(
-            geometry
-        );
+        g.setMaterial(material);
+        g.setLocalTranslation(p);
+        windowsNode.attachChild(g);
     }
 
-    // =========================
-    // MATERIAL
-    // =========================
-
-    private Material createMaterial(
-        AssetManager assetManager,
-        ColorRGBA color
+    private Material material(
+        AssetManager manager,
+        ColorRGBA color,
+        float shininess
     ) {
-
-        Material material =
-            new Material(
-                assetManager,
-                "Common/MatDefs/Misc/Unshaded.j3md"
-            );
-
-        material.setColor(
-            "Color",
-            color
+        Material m = new Material(
+            manager,
+            "Common/MatDefs/Light/Lighting.j3md"
         );
-
-        return material;
+        m.setBoolean("UseMaterialColors",true);
+        m.setColor("Ambient",color.mult(0.55f));
+        m.setColor("Diffuse",color);
+        m.setColor("Specular",ColorRGBA.White);
+        m.setFloat("Shininess",shininess);
+        return m;
     }
 
     public Node getNode() {
