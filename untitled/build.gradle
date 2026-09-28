@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs = ['assets']
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.jmonkeyengine:jme3-core:3.9.0-stable'
+    implementation 'org.jmonkeyengine:jme3-desktop:3.9.0-stable'
+    implementation 'org.jmonkeyengine:jme3-lwjgl3:3.9.0-stable'
+}
+
+application {
+    mainClass = 'Main'
+}
