@@ -22,7 +22,10 @@ public class Main extends SimpleApplication implements ActionListener {
         AppSettings settings = new AppSettings(true);
         settings.setTitle("Untitled — Island");
         settings.setResolution(1280, 720);
-        settings.setFullscreen(true);
+
+        // Start windowed for reliable startup across different displays.
+        // F11 still lets the player switch to fullscreen in-game.
+        settings.setFullscreen(false);
         settings.setVSync(true);
         settings.setSamples(4);
 
@@ -68,7 +71,7 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void onAction(String name, boolean pressed, float tpf) {
-        if ("OpenSettings".equals(name) && pressed) {
+        if ("OpenSettings".equals(name) && pressed && settingsMenu != null) {
             settingsMenu.toggle();
         }
     }

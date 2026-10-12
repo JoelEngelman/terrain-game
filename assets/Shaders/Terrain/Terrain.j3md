@@ -2,6 +2,7 @@ MaterialDef Terrain {
 
     MaterialParameters {
         Color BaseColor
+        Float Time
     }
 
     Technique {

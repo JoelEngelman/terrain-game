@@ -116,7 +116,12 @@ public class HouseDoors {
     }
 
     public Vector3f getWorldPosition() {
-        return doorsNode.getWorldTranslation().clone();
+        // Return the actual doorway position, not the house origin.
+        // This makes E interaction work when the player stands by the door.
+        Vector3f doorCenter = new Vector3f(
+            0f, 1.5f, -depth / 2f - 0.16f
+        );
+        return doorsNode.localToWorld(doorCenter, null);
     }
 
     public Node getNode() {
